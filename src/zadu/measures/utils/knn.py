@@ -1,7 +1,10 @@
-from .pairwise_dist import pairwise_distance_matrix
+from .pairwise_dist import pairwise_distance_matrix, geodesic_distance
 import numpy as np
 import faiss
-from sklearn.neighbors import KDTree
+from sklearn.neighbors import KDTree, BallTree
+
+def geodesic_knn(x, y):
+  return geodesic_distance(x[1], x[0], y[1], y[0])
 
 def knn_with_ranking(points, k, distance_matrix=None):
   """
@@ -53,6 +56,9 @@ def knn(points, k, distance_function="euclidean"):
     index = faiss.IndexFlatL2(points.shape[1])
     index.add(points)
     knn_indices = index.search(points, k+1)[1][:, 1:]
+  elif distance_function == "geodesic":
+    tree = BallTree(points, metric=geodesic_knn)
+    knn_indices = tree.query(points, k=k+1, return_distance=False)[:, 1:]
   else:
     tree = KDTree(points, metric=distance_function)
     knn_indices = tree.query(points, k=k+1, return_distance=False)[:, 1:]

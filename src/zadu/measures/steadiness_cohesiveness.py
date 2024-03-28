@@ -4,7 +4,7 @@ from .utils import knn
 
 
 
-def measure(orig, emb, iteration=150, walk_num_ratio=0.3, alpha=0.1, k=50, clustering_strategy="dbscan", knn_info=None, return_local=False):
+def measure(orig, emb, iteration=150, walk_num_ratio=0.3, alpha=0.1, k=25, clustering_strategy="dbscan", knn_info=None, return_local=False, geodesic=False):
 	"""
 	Compute the Steadiness and Cohesiveness of the embedding
 	INPUT:
@@ -21,7 +21,10 @@ def measure(orig, emb, iteration=150, walk_num_ratio=0.3, alpha=0.1, k=50, clust
 	"""
 
 	if knn_info is None:
-		orig_knn_indices = knn.knn(orig, k)
+		if geodesic:
+			orig_knn_indices = knn.knn(orig, k, distance_function="geodesic")
+		else:
+			orig_knn_indices = knn.knn(orig, k)
 		emb_knn_indices = knn.knn(emb, k)
 	else:
 		orig_knn_indices, emb_knn_indices = knn_info

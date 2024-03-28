@@ -1,8 +1,6 @@
 from .measures import *
 from .measures.utils import knn
 from .measures.utils import pairwise_dist as pdist
-import math
-import numpy as np
 
 class ZADU:
 
@@ -33,6 +31,7 @@ class ZADU:
 		self.spec_list    = spec_list
 		self.return_local = return_local
 		self.verbose      = verbose
+		self.geodesic     = geodesic
 
 		self.orig  = orig
 		self.emb   = None
@@ -58,7 +57,7 @@ class ZADU:
 
 		if self.distance_matrices_flag:
 			if geodesic:
-				self.orig_distance_matrix = self.__pairwise_geodesic_distance_matrix(orig)
+				self.orig_distance_matrix = pdist.pairwise_geodesic_distance_matrix(orig)
 			else:
 				self.orig_distance_matrix = pdist.pairwise_distance_matrix(orig)
 		if self.knn_ranking_flag:
@@ -127,6 +126,8 @@ class ZADU:
 					)
 				elif "return_local" == param:
 					exec_params["return_local"] = self.return_local
+				elif "geodesic" == param:
+					exec_params["geodesic"] = self.geodesic
 			
 			## execute the function
 			if self.return_local and "return_local" in exec_params:
@@ -207,18 +208,3 @@ class ZADU:
 		"""
 		measure_func = globals()[measure_name].measure
 		return measure_func.__code__.co_varnames[:measure_func.__code__.co_argcount]
-	
-
-
-	def __geodesic_distance(self, phi1, lambda1, phi2, lambda2):
-		return math.acos(math.sin(phi1) * math.sin(phi2) + math.cos(phi1) * math.cos(phi2) * math.cos(abs(lambda2 - lambda1)))
-
-
-	def __pairwise_geodesic_distance_matrix(self, orig):
-		data_len = len(orig)
-		distance_matrix = np.zeros((data_len, data_len))
-		for i in range(data_len):
-			for j in range(i, data_len):
-				if i == j: distance_matrix[i][j] = 0
-				else: distance_matrix[i][j] = distance_matrix[j][i] = self.__geodesic_distance(orig[i][1], orig[i][0], orig[j][1], orig[j][0])
-		return distance_matrix
